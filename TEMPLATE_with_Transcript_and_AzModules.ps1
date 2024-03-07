@@ -242,7 +242,7 @@ process {
 
 
     #region main
-    # debug tracing - set to "0" for most production use
+    # debug tracing - set to "2" for testing, set to "0" for production use
     Set-PSDebug -Trace 2
     [int]$MyExitStatus = 1
     $StartTime = $(Get-Date)
