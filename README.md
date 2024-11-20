@@ -16,6 +16,8 @@
 
 ## v1.8 last updated 2024-02-27
 
+### Scripts provided as-is. Use at your own risk. No guarantees or warranty provided.
+
  A set of basic templates for BAT/PS scripts to facilitate good practices
  when scripting for scheduled tasks and automation across many endpoints.
  When running scripts in a way that the execution is not being monitored
