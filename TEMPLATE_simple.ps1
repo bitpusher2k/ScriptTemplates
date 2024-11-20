@@ -64,11 +64,11 @@ param(
     [string]$CustomParameter = "defaultvalue",
     [string]$scriptName = "TEMPLATE_CHANGE_ME",
     [string]$Priority = "Normal",
-    [int]$RandMax = "100",
+    [int]$RandMax = "500",
     [string]$DebugPreference = "SilentlyContinue",
     [string]$VerbosePreference = "SilentlyContinue",
     [string]$InformationPreference = "Continue",
-    [string]$logFileFolderPath = "C:\temp\log",
+    [string]$logFileFolderPath = "C:\Utility\log",
     [string]$ComputerName = $env:computername,
     [string]$ScriptUserName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name,
     [string]$emailServer = "",
@@ -85,7 +85,7 @@ param(
     [string]$Encoding = "utf8bom" # "ascii","ansi","bigendianunicode","unicode","utf8","utf8","utf8NoBOM","utf32"
 )
 
-process {
+Process {
     #region initialization
     if ($PSVersionTable.PSVersion.Major -eq 5 -and ($Encoding -eq "utf8bom" -or $Encoding -eq "utf8nobom")) { $Encoding = "utf8" }
 
@@ -157,10 +157,12 @@ process {
     Set-PSDebug -Trace 2
     [int]$MyExitStatus = 1
     $StartTime = $(Get-Date)
-    Tee-Object -InputObject "Script $scriptName started at $(Get-TimeStamp)" -FilePath $logFilePath -Append
-    Tee-Object -InputObject "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" -FilePath $logFilePath -Append
+    Write-Output "Script $scriptName started at $(Get-TimeStamp)"
+    Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n"
     $RandSeconds = Get-Random -Minimum 1 -Maximum $RandMax
-    Tee-Object -InputObject "Waiting $RandSeconds seconds (between 1 and $RandMax) to stagger execution across devices`n" -FilePath $logFilePath -Append
+    Write-Output "Script $scriptName started at $(Get-TimeStamp)" | Out-File -FilePath $logFilePath -Encoding $Encoding
+    Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
+    Write-Output "Waiting $RandSeconds seconds (between 1 and $RandMax) to stagger execution across devices`n"
     Start-Sleep -Seconds $RandSeconds
 
     #
@@ -173,9 +175,7 @@ process {
     } else {
         $TmpFile = "C:\temp\output.TMP"
     }
-    Tee-Object -InputObject "`n---------------`n" -FilePath $logFilePath -Append
     Write-Output "$(Get-TimeStamp) Example output message."
-    Tee-Object -InputObject "`n---------------`n" -FilePath $logFilePath -Append
     #
     # End main script body
     # Remember to update $scriptName parameter
@@ -186,10 +186,12 @@ process {
 
     #region finalization
     if ($logFileFolderPath -ne "") {
-        Tee-Object -InputObject "`nScript $scriptName ended at $(Get-TimeStamp)" -FilePath $logFilePath -Append
+        Write-Output "`nScript $scriptName ended at $(Get-TimeStamp)"
+        Write-Output "Script $scriptName ended at $(Get-TimeStamp)" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
         $elapsedTime = $(Get-Date) - $StartTime
-        Tee-Object -InputObject "Elapsed time (seconds): $($elapsedTime.TotalSeconds)" -FilePath $logFilePath -Append
-        Tee-Object -InputObject "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" -FilePath $logFilePath -Append
+        Write-Output "Elapsed time (seconds): $($elapsedTime.TotalSeconds)"
+        Write-Output "Elapsed time (seconds): $($elapsedTime.TotalSeconds)" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
+        Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
         if (($emailServer -ne "") -and ($emailUsername -ne "") -and ($emailPassword -ne "") -and ($emailFrom -ne "") -and ($emailTo -ne "")) {
             Send-MailMessage -SmtpServer "$emailServer" -Port 587 -From "$emailFrom" -To "$emailTo" -Subject "$scriptName - $ComputerName - $MyExitStatus - Log File" -Body "$logFilePath" -UseSsl -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "$emailUsername", (ConvertTo-SecureString -String "$emailPassword" -AsPlainText -Force)) -Attachments $logFilePath
         }

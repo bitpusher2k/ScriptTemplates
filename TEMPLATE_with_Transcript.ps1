@@ -9,7 +9,7 @@
 # https://github.com/bitpusher2k
 #
 # TEMPLATE.ps1 - By Bitpusher/The Digital Fox
-# v1.0 last updated 2024-00-00
+# v1.0 last updated 2023-00-00
 # Script to XXXX
 #
 # Usage:
@@ -59,14 +59,6 @@
 
 #Requires -Version 5.1
 
-[CmdletBinding(
-        ConfirmImpact=<string>, # Level of impact of actions function can perform - None, Low, Medium, High
-        DefaultParameterSetName=<string>, # Default parameter set name you want PowerShell to use if none set.
-        HelpURI=<uri>, # URI to online help, must begin with http or https.
-        SupportsPaging=<boolean>, # Used when you’re trying to return data from a large database such as MySQL.
-        SupportsShouldProcess=<boolean>, # Adds three parameters – First, Skip, and IncludeTotalCount to the function.
-        PositionalBinding=<boolean>) # positional binding binds positions to parameters as defined
-]
 param(
     [Parameter(Mandatory = $true)]
     [string]$CustomParameter = "defaultvalue",
@@ -76,7 +68,7 @@ param(
     [string]$DebugPreference = "SilentlyContinue",
     [string]$VerbosePreference = "SilentlyContinue",
     [string]$InformationPreference = "Continue",
-    [string]$logFileFolderPath = "C:\Temp\log",
+    [string]$logFileFolderPath = "C:\Utility\log",
     [string]$ComputerName = $env:computername,
     [string]$ScriptUserName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name,
     [string]$emailServer = "",
@@ -90,10 +82,10 @@ param(
     [string]$logFilePrefix = "$scriptName" + "_" + "$ComputerName" + "_",
     [string]$logFileDateFormat = "yyyyMMdd_HHmmss",
     [int]$logFileRetentionDays = 30,
-    [string]$Encoding = "utf8bom" # "ascii","ansi","bigendianunicode","unicode","utf8","utf8NoBOM","utf32"
+    [string]$Encoding = "utf8bom" # "ascii","ansi","bigendianunicode","unicode","utf8","utf8","utf8NoBOM","utf32"
 )
 
-begin {
+process {
     #region initialization
     if ($PSVersionTable.PSVersion.Major -eq 5 -and ($Encoding -eq "utf8bom" -or $Encoding -eq "utf8nobom")) { $Encoding = "utf8" }
 
@@ -157,12 +149,6 @@ begin {
         }
     }
 
-    # debug tracing - set to "0" for most production use
-    Set-PSDebug -Trace 2
-    [int]$MyExitStatus = 1
-    $StartTime = $(Get-Date)
-    Write-Output "Script $scriptName started at $(Get-TimeStamp)"
-    Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n"
     # Set script priority
     # Possible values: Idle, BelowNormal, Normal, AboveNormal, High, RealTime
     $process = Get-Process -Id $pid
@@ -196,10 +182,15 @@ begin {
         }
     }
     #endregion install-modules
-}
 
-process {
+
     #region main
+    # debug tracing - set to "0" for most production use
+    Set-PSDebug -Trace 2
+    [int]$MyExitStatus = 1
+    $StartTime = $(Get-Date)
+    Write-Output "Script $scriptName started at $(Get-TimeStamp)"
+    Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n"
     $RandSeconds = Get-Random -Minimum 1 -Maximum $RandMax
     Write-Output "Waiting $RandSeconds seconds (between 1 and $RandMax) to stagger execution across devices`n"
     Start-Sleep -Seconds $RandSeconds
@@ -221,9 +212,7 @@ process {
 
     $MyExitStatus = 0
     #endregion main
-}
 
-end {
     #region finalization
     if ($logFileFolderPath -ne "") {
         Write-Output "`nScript $scriptName ended at $(Get-TimeStamp)"
