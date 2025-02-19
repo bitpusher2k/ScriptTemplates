@@ -9,7 +9,7 @@
 # https://github.com/bitpusher2k
 #
 # TEMPLATE_simple.ps1 - By Bitpusher/The Digital Fox
-# v1.0 last updated 2023-00-00
+# v1.0 last updated 2025-00-00
 # Script to XXXX
 #
 # Usage:
@@ -39,6 +39,10 @@
 #
 # email log to yourself by including the emailServer, emailFrom, emailTo
 # emailUsername, and emailPassword parameters.
+# email using Mailozaurr using emailServer, emailFrom, emailTo, emailUsername,
+# emailPassword parameters and setting Mailozaurr to "1".
+# email using Mailozaurr through M$ Graph using emailFrom, emailTo, 
+# ClientID, ClientSecret, DirectoryID parameters and setting Mailozaurr to "1".
 #
 # when creating a scheduled task to run such scripts, use the following structure example:
 # powershell.exe -NoProfile -ExecutionPolicy Bypass -Scope Process -File "C:\Utility\TEMPLATE.ps1"
@@ -72,10 +76,16 @@ param(
     [string]$ComputerName = $env:computername,
     [string]$ScriptUserName = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name,
     [string]$emailServer = "",
+    [string]$emailPort = "587",
     [string]$emailFrom = "",
     [string]$emailTo = "",
     [string]$emailUsername = "",
     [string]$emailPassword = "",
+    [string]$Mailozaurr = "0",
+    [string]$Graph = "0",
+    [string]$ClientID = "",
+    [string]$DirectoryID = "",
+    [string]$ClientSecret = "",
     [string]$shareLocation = "",
     [string]$shareUsername = "",
     [string]$sharePassword = "",
@@ -192,8 +202,18 @@ Process {
         Write-Output "Elapsed time (seconds): $($elapsedTime.TotalSeconds)"
         Write-Output "Elapsed time (seconds): $($elapsedTime.TotalSeconds)" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
         Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
-        if (($emailServer -ne "") -and ($emailUsername -ne "") -and ($emailPassword -ne "") -and ($emailFrom -ne "") -and ($emailTo -ne "")) {
-            Send-MailMessage -SmtpServer "$emailServer" -Port 587 -From "$emailFrom" -To "$emailTo" -Subject "$scriptName - $ComputerName - $MyExitStatus - Log File" -Body "$logFilePath" -UseSsl -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "$emailUsername", (ConvertTo-SecureString -String "$emailPassword" -AsPlainText -Force)) -Attachments $logFilePath
+        if (($emailFrom -ne "") -and ($emailTo -ne "")) {
+            if ($Mailozaurr -eq "1") {
+                if (!Get-Module -Name Mailozaurr) { Install-Module -Name Mailozaurr -AllowClobber -Force }
+                if ($Graph -eq "1") {
+                    $Credential = ConvertTo-GraphCredential -ClientID $ClientID -ClientSecret $ClientSecret -DirectoryID $DirectoryID
+                    Send-EmailMessage -From "$emailFrom" -To "$emailTo" -Subject "$scriptName - $ComputerName - $MyExitStatus - Log File" -Text "$logFilePath" -UseSsl -Credential $Credential -Graph -Verbose -Priority Low -DoNotSaveToSentItems -Attachment @("$logFilePath")
+                } else {
+                    Send-EmailMessage -Server "$emailServer" -Port $emailPort -From "$emailFrom" -To "$emailTo" -Subject "$scriptName - $ComputerName - $MyExitStatus - Log File" -Text "$logFilePath" -UseSsl -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "$emailUsername", (ConvertTo-SecureString -String "$emailPassword" -AsPlainText -Force)) -Attachment $logFilePath
+                }
+            } else {
+                Send-MailMessage -SmtpServer "$emailServer" -Port $emailPort -From "$emailFrom" -To "$emailTo" -Subject "$scriptName - $ComputerName - $MyExitStatus - Log File" -Body "$logFilePath" -UseSsl -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "$emailUsername", (ConvertTo-SecureString -String "$emailPassword" -AsPlainText -Force)) -Attachments $logFilePath
+            }
         }
         if (($shareLocation -ne "") -and ($shareUsername -ne "") -and ($sharePassword -ne "")) {
             [securestring]$secStringPassword = ConvertTo-SecureString $sharePassword -AsPlainText -Force
