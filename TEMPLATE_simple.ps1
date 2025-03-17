@@ -167,12 +167,10 @@ Process {
     Set-PSDebug -Trace 2
     [int]$MyExitStatus = 1
     $StartTime = $(Get-Date)
-    Write-Output "Script $scriptName started at $(Get-TimeStamp)"
-    Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n"
+    Write-Output "Script $scriptName started at $(Get-TimeStamp)" | Tee-Object -FilePath $logFilePath -Append
+    Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" | Tee-Object -FilePath $logFilePath -Append
     $RandSeconds = Get-Random -Minimum 1 -Maximum $RandMax
-    Write-Output "Script $scriptName started at $(Get-TimeStamp)" | Out-File -FilePath $logFilePath -Encoding $Encoding
-    Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
-    Write-Output "Waiting $RandSeconds seconds (between 1 and $RandMax) to stagger execution across devices`n"
+    Write-Output "Waiting $RandSeconds seconds (between 1 and $RandMax) to stagger execution across devices`n" | Tee-Object -FilePath $logFilePath -Append
     Start-Sleep -Seconds $RandSeconds
 
     #
@@ -196,12 +194,10 @@ Process {
 
     #region finalization
     if ($logFileFolderPath -ne "") {
-        Write-Output "`nScript $scriptName ended at $(Get-TimeStamp)"
-        Write-Output "Script $scriptName ended at $(Get-TimeStamp)" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
+        Write-Output "`nScript $scriptName ended at $(Get-TimeStamp)" | Tee-Object -FilePath $logFilePath -Append
         $elapsedTime = $(Get-Date) - $StartTime
-        Write-Output "Elapsed time (seconds): $($elapsedTime.TotalSeconds)"
-        Write-Output "Elapsed time (seconds): $($elapsedTime.TotalSeconds)" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
-        Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" | Out-File -FilePath $logFilePath -Append -Encoding $Encoding
+        Write-Output "Elapsed time (seconds): $($elapsedTime.TotalSeconds)" | Tee-Object -FilePath $logFilePath -Append
+        Write-Output "ISO8601:$(Get-Date (Get-Date).ToUniversalTime() -UFormat '+%Y%m%dT%H%M%S.000Z')`n" | Out-File -FilePath $logFilePath -Append
         if (($emailFrom -ne "") -and ($emailTo -ne "")) {
             if ($Mailozaurr -eq "1") {
                 if (!Get-Module -Name Mailozaurr) { Install-Module -Name Mailozaurr -AllowClobber -Force }
